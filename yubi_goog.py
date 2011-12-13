@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 ################################################################################
 # yubi_goog.py - google authenticator via yubikey
 #
@@ -25,8 +25,13 @@ TIME_STEP = 30
 # Use sudo when invoking ykchalresp
 USE_SUDO = True
 
+IS_PY3 = sys.version_info[0] == 3
+
 def mangle_hash(h):
-    offset = ord(h[-1]) & 0x0F
+    if IS_PY3:
+        offset = h[-1] & 0x0F
+    else:
+        offset = ord(h[-1]) & 0x0F
     truncatedHash = h[offset:offset+4]
 
     code = struct.unpack(">L", truncatedHash)[0]
@@ -39,7 +44,6 @@ def totp(secret, tm):
     bin_key = binascii.unhexlify(secret)
     h = hmac.new(bin_key, tm, hashlib.sha1)
 
-    #print "real hash: %s" %( h.hexdigest() )
     h = h.digest()
 
     return mangle_hash(h)
@@ -51,9 +55,9 @@ def generate_challenges(intervals = ADJACENT_INTERVALS):
 
     challenges = []
     t = int(time.time())
-    for ix in range(0-intervals/2, intervals/2+1):
+    for ix in range(0-int(intervals/2), int(intervals/2)+1):
         tm = (t + TIME_STEP*ix)/TIME_STEP
-        tm = struct.pack('>q', tm)
+        tm = struct.pack('>q', int(tm))
         challenges.append(tm)
     return challenges
 
@@ -65,12 +69,15 @@ def decode_secret(secret):
     return secret
 
 def get_secret():
-    google_key = raw_input("Google key: ")
+    if IS_PY3:
+        google_key = input("Google key: ")
+    else:
+        google_key = raw_input("Google key: ")
     return decode_secret(google_key)
 
 def convert_secret():
     secret = binascii.hexlify(get_secret())
-    print secret
+    print(secret.decode())
 
 def generate():
 
@@ -78,7 +85,7 @@ def generate():
 
     # now, and 30 seconds ahead and behind
     for chal in generate_challenges():
-        print "OTP: %s" %( totp(secret, chal) )
+        print("OTP: %s" %( totp(secret, chal) ))
 
 
 def yubi():
@@ -91,10 +98,10 @@ def yubi():
         cmd.append('-2x')
         cmd.append(chal)
         resp = subprocess.check_output(cmd).strip()
-        print "OTP: %s" %( mangle_hash(binascii.unhexlify(resp)) )
+        print("OTP: %s" %(mangle_hash(binascii.unhexlify(resp))))
 
 def error():
-    print "Pass --generate,  --yubi, or --convert-secret"
+    print("Pass --generate,  --yubi, or --convert-secret")
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:

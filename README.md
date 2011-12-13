@@ -1,5 +1,5 @@
-yubikey-googleauth
-==================
+yubi-goog
+=========
 
 Google Authenticator is great, but I don't really want to be tied to my mobile
 phone for logging into Google Services. Yubikey is the ideal form factor for a
@@ -14,7 +14,7 @@ Available under the ISC License.
 
 Prerequisites
 -------------
-* Python 3.x
+* Python >=2.7 or 3.x
 * ykchalresp (found in the yubikey-personalization package)
 
 Usage

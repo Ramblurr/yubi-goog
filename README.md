@@ -16,6 +16,8 @@ Prerequisites
 -------------
 * Python >=2.7 or 3.x
 * ykchalresp (found in the yubikey-personalization package)
+* Yubikey
+* [Cross-platform GUI Personalization tool][tool]
 
 Usage
 -----
@@ -27,8 +29,9 @@ Usage
    this will prompt you for your base32-encoded secret and output a result
    in hex.
 4. Program that secret into your Yubikey as a HMAC-SHA1 challenge-response key.
-   I had to use the GUI tool available from Yubico.
+   I had to use the [GUI tool available from Yubico][tool]
 5. Whenever you are prompted for a one-time password from google, just run
    `yubi_goog.py --yubi` and the output will be a one-time password usable
    for up to one minute 30 seconds.
 
+[tool]: http://wiki.yubico.com/files/YubiKey%20Personalization%20Tool%20Installer-lin.tgz

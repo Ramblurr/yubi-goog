@@ -19,12 +19,13 @@ import hashlib
 import hmac
 import struct
 
-ADJACENT_INTERVALS = 3
-TIME_STEP = 30
+ADJACENT_INTERVALS = 3 # generate 3 OTPs
+TIME_STEP = 30 # default as per TOTP spec
 
 # Use sudo when invoking ykchalresp
 USE_SUDO = True
 
+# supporting py2 and py3 sucks
 IS_PY3 = sys.version_info[0] == 3
 
 def mangle_hash(h):
@@ -32,9 +33,9 @@ def mangle_hash(h):
         offset = h[-1] & 0x0F
     else:
         offset = ord(h[-1]) & 0x0F
-    truncatedHash = h[offset:offset+4]
+    truncated_hash = h[offset:offset+4]
 
-    code = struct.unpack(">L", truncatedHash)[0]
+    code = struct.unpack(">L", truncated_hash)[0]
     code &= 0x7FFFFFFF;
     code %= 1000000;
 
@@ -42,17 +43,17 @@ def mangle_hash(h):
 
 def totp(secret, tm):
     bin_key = binascii.unhexlify(secret)
-    h = hmac.new(bin_key, tm, hashlib.sha1)
-
-    h = h.digest()
+    h = hmac.new(bin_key, tm, hashlib.sha1).digest()
 
     return mangle_hash(h)
 
 def generate_challenges(intervals = ADJACENT_INTERVALS):
     """
     intervals: must be odd number
-    """
 
+    generates intervals-number total challenges. used to
+    workaround clock skew.
+    """
     challenges = []
     t = int(time.time())
     for ix in range(0-int(intervals/2), int(intervals/2)+1):
@@ -62,13 +63,20 @@ def generate_challenges(intervals = ADJACENT_INTERVALS):
     return challenges
 
 def decode_secret(secret):
-    secret = secret.replace(' ', '')
-    secret = secret.upper()
+    """
+    Decodes the base32 string google provides" to hex
+    """
+    # remove spaces and uppercase
+    secret = re.sub(r'\s', '', secret).upper()
     secret = secret.encode('ascii')
     secret = base64.b32decode(secret)
-    return secret
+    return binascii.hexlify(secret)
 
 def get_secret():
+    """
+    Read secret from user
+    """
+
     if IS_PY3:
         google_key = input("Google key: ")
     else:
@@ -76,13 +84,12 @@ def get_secret():
     return decode_secret(google_key)
 
 def convert_secret():
-    secret = binascii.hexlify(get_secret())
+    secret = get_secret()
     print(secret.decode())
 
 def generate():
-
-    secret = binascii.hexlify(get_secret())
-
+    # convert secret to hex
+    secret = get_secret()
     # now, and 30 seconds ahead and behind
     for chal in generate_challenges():
         print("OTP: %s" %( totp(secret, chal) ))
@@ -101,7 +108,7 @@ def yubi():
         print("OTP: %s" %(mangle_hash(binascii.unhexlify(resp))))
 
 def error():
-    print("Pass --generate,  --yubi, or --convert-secret")
+    print("Valid opts: --generate,  --yubi, or --convert-secret")
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:

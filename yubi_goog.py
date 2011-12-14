@@ -39,7 +39,7 @@ def mangle_hash(h):
     code &= 0x7FFFFFFF;
     code %= 1000000;
 
-    return code
+    return '{0:06d}'.format(code)
 
 def totp(secret, tm):
     bin_key = binascii.unhexlify(secret)

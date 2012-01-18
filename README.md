@@ -14,7 +14,7 @@ Available under the ISC License.
 
 Prerequisites
 -------------
-* Python >=2.7 or 3.x
+* Python >=2.6 or 3.x
 * ykchalresp (found in the yubikey-personalization package)
 * Yubikey
 * [Cross-platform GUI Personalization tool][tool]

@@ -104,7 +104,15 @@ def yubi():
         cmd.append('ykchalresp')
         cmd.append('-2x')
         cmd.append(chal)
-        resp = subprocess.check_output(cmd).strip()
+        if hasattr(subprocess, "check_output"):
+            resp = subprocess.check_output(cmd).strip()
+        else:
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            out, err = proc.communicate()
+            if not isinstance(out, basestring):
+                raise ValueError("Command {0} returned {1!r}."
+                                 .format(" ".join(cmd), out))
+            resp = out.strip()
         print("OTP: %s" %(mangle_hash(binascii.unhexlify(resp))))
 
 def error():

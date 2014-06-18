@@ -105,7 +105,10 @@ def yubi():
         cmd.append('-2x')
         cmd.append(chal)
         if hasattr(subprocess, "check_output"):
-            resp = subprocess.check_output(cmd).strip()
+            try:
+                resp = subprocess.check_output(cmd).strip()
+            except subprocess.CalledProcessError:
+                sys.exit(1)
         else:
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             out, err = proc.communicate()
